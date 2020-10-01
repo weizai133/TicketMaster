@@ -1,3 +1,4 @@
+# kubectl create secret generic jwt-secret --from-literal=JWT_KEY=XwPp9xazJ0ku5CZnlmgAx2Dld8SHkAeT
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,10 +16,12 @@ spec:
       containers:
         - name: auth
           image: weizai133/auth
-          ports:
-            - containerPort: 3000
-              protocol: TCP
-
+          env:
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: JWT_KEY
 ---
 
 apiVersion: v1

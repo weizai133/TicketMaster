@@ -2,10 +2,9 @@ import express, { Request, Response } from "express";
 import "express-async-errors";
 import morgan from "morgan";
 import { json } from "body-parser";
-import authRouter from "./routes/auth";
-import errorHandler from "./middlewares/error-handlers";
-import { NotFoundError } from "./errors/NotFoundError";
 import mongoose from "mongoose";
+import authRouter from "./routes/auth";
+import { NotFoundError, errorHandler } from "@rayjson/common";
 
 const app = express();
 app.use(json());
@@ -33,13 +32,16 @@ app.use('*', (req: Request, res: Response) => {
 app.use(errorHandler);
 
 const start = async () => {
+  if (!process.env.JWT_KEY) {
+    throw new Error('JWT token must be defined')
+  }
   try {
     await mongoose.connect("mongodb://auth-mongo-srv:27017/auth", {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useCreateIndex: true
     });
-    console.log('Connected to MongoDB')
+    console.log('Connected to MongoDB');
   } catch (error) {
     console.log(error)
   }
