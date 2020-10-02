@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-mongo-depl
+  name: mongo-depl
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auth-mongo
+      app: ticketmaster-mongo
   template:
     metadata:
       labels:
-        app: auth-mongo
+        app: ticketmaster-mongo
     spec:
       containers: 
-        - name : auth-mongo
+        - name : ticketmaster-mongo
           image: mongo
 
 --- 
@@ -21,10 +21,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth-mongo-srv
+  name: ticketmaster-mongo-srv
 spec:
   selector:
-    app: auth-mongo
+    app: ticketmaster-mongo
   ports:
     - name: db
       protocol: TCP

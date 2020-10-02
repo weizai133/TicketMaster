@@ -32,7 +32,7 @@ router.post('/signup',
 
     const user = UserModal.build({ ...req.body });
     await user.save();
-    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_KEY!, { expiresIn: '20s' });
+    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_KEY!, { expiresIn: '1d' });
 
     res.status(201).json({ id: user.id, email: user.email, token });
   }
@@ -63,7 +63,7 @@ router.post('/signIn',
       throw new BadRequestError('Invalid credential');
     }
 
-    const token = jwt.sign({ id: existedUser.id, email: existedUser.email }, process.env.JWT_KEY!, { expiresIn: '1h' });
+    const token = jwt.sign({ id: existedUser.id, email: existedUser.email }, process.env.JWT_KEY!, { expiresIn: '1d' });
 
     res.status(200).send({ token, email: existedUser.email, id: existedUser.id });
   }

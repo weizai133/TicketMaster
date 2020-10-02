@@ -1,10 +1,9 @@
 import express, { Request, Response } from "express";
-import "express-async-errors";
-import morgan from "morgan";
-import { json } from "body-parser";
 import mongoose from "mongoose";
-import authRouter from "./routes/auth";
-import { NotFoundError, errorHandler } from "@rayjson/common";
+import { json } from "body-parser";
+import { errorHandler, NotFoundError } from "@rayjson/common";
+import morgan from "morgan";
+import ticketRouter from "./routes";
 
 const app = express();
 app.use(json());
@@ -23,9 +22,9 @@ app.get('/checkStatus', (req: Request, res: Response) => {
   res.status(200).json({ success: true });
 });
 
-app.use('/api/users', authRouter);
+app.use('/api/tickets', ticketRouter);
 
-app.use('*', (req: Request, res: Response) => {
+app.use('*', async (req: Request, res: Response) => {
   throw new NotFoundError()
 });
 
@@ -50,9 +49,8 @@ const start = async () => {
     console.log(error)
   }
   app.listen(3000, () => {
-    console.log('AUTH service is listening on PORT 3000');
+    console.log('TICKET service is listening on PORT 3000');
   });
 }
 
 start();
-

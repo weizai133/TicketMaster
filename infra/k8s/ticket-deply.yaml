@@ -1,21 +1,20 @@
-# kubectl create secret generic jwt-secret --from-literal=JWT_KEY=XwPp9xazJ0ku5CZnlmgAx2Dld8SHkAeT
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-depl
+  name: ticket-depl
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auth
+      app: ticket
   template:
-    metadata:
+    metadata: 
       labels:
-        app: auth
-    spec: 
+        app: ticket
+    spec:
       containers:
-        - name: auth
-          image: weizai133/auth
+        - name: ticket
+          image: weizai133/ticket
           env:
             - name: MONGO_URI
               value: 'mongodb://ticketmaster-mongo-srv:27017/ticket'
@@ -24,17 +23,19 @@ spec:
                 secretKeyRef:
                   name: jwt-secret
                   key: JWT_KEY
+
 ---
 
 apiVersion: v1
 kind: Service
-metadata: 
-  name: auth-srv
+metadata:
+  name: ticket-srv
 spec:
-  selector:
-    app: auth
+  selector: 
+    app: ticket
   ports:
-    - name: auth
+    - name: ticket
       protocol: TCP
       port: 3000
       targetPort: 3000
+
