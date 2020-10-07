@@ -1,5 +1,12 @@
 import mongoose from "mongoose";
 
+export interface TicketProps {
+  id: string;
+  userId: string;
+  title: string;
+  price: number;
+}
+
 interface TicketAttrs {
   title: string;
   price: number;

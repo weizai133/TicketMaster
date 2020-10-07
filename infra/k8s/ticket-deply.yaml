@@ -18,6 +18,14 @@ spec:
           env:
             - name: MONGO_URI
               value: 'mongodb://ticketmaster-mongo-srv:27017/ticket'
+            - name: NATS_CLIENT_URL
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: CLUSTER_IP
+              value: ticketing
+            - name: NATS_URL
+              value: http://nats-srv:4222
             - name: JWT_KEY
               valueFrom:
                 secretKeyRef:

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { json } from "body-parser";
 import { errorHandler, NotFoundError } from "@rayjson/common";
 import morgan from "morgan";
+import { natsWrapper } from "./nats-wrapper";
 import ticketRouter from "./routes";
 
 const app = express();
@@ -37,8 +38,25 @@ const start = async () => {
   if (!process.env.MONGO_URI) {
     throw new Error('Mongo URI must be defined')
   }
+  if (!process.env.NATS_CLIENT_URL) {
+    throw new Error('NATS_CLIENT_URL must be defined')
+  }
+  if (!process.env.CLUSTER_IP) {
+    throw new Error('CLUSTER_IP must be defined')
+  }
+  if (!process.env.NATS_URL) {
+    throw new Error('NATS_URL must be defined')
+  }
 
   try {
+    await natsWrapper.connect(process.env.CLUSTER_IP, process.env.NATS_CLIENT_URL, process.env.NATS_URL);
+    natsWrapper.client.on('close', () => {
+      console.log('NATS connection closed!');
+      process.exit();
+    });
+    process.on('SIGINT', () => natsWrapper.client.close());
+    process.on('SIGTERM', () => natsWrapper.client.close());
+    
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
