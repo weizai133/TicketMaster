@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import 'express-async-errors';
 import mongoose from "mongoose";
 import { json } from "body-parser";
 import { errorHandler, NotFoundError } from "@rayjson/common";
