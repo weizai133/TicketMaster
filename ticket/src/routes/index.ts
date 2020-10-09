@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { body } from "express-validator";
-import { Ticket, TicketProps } from "../modal";
+import { Ticket } from "../model";
 import { requireAuth, validateRequest, NotFoundError, CredentialError } from "@rayjson/common";
 import { TicketCreatedPublisher } from "../events/TicketCreatedPublisher";
 import { TicketUpdatePublisher } from "../events/TicketUpdatePublisher";
@@ -19,7 +19,13 @@ async (req: Request, res: Response) => {
   const { title, price } = req.body;
   const newTicket = Ticket.build({ userId: req.currentUser!.id, title, price });
   await newTicket.save()
-  await new TicketCreatedPublisher(natsWrapper.client).publish({ id: newTicket.id, title: newTicket.title, price: newTicket.price, userId: newTicket.userId });
+  await new TicketCreatedPublisher(natsWrapper.client).publish({ 
+    id: newTicket.id,
+    version: newTicket.version, 
+    title: newTicket.title, 
+    price: newTicket.price, 
+    userId: newTicket.userId
+  });
 
   return res.status(201).json({ id: newTicket.id, title, price });
 });
@@ -51,10 +57,21 @@ async (req: Request, res: Response) => {
 
   if (existedTicket.userId !== req.currentUser?.id) throw new CredentialError();
 
-  const result = await Ticket.findByIdAndUpdate(req.params.id, { ...req.body }, { new: true }) as TicketProps;
-  await new TicketUpdatePublisher(natsWrapper.client).publish({ id: result.id, title: result.title, price: result.price, userId: result.userId })
+  existedTicket.set({
+    title: req.body.title,
+    price: req.body.price
+  });
+  await existedTicket.save();
 
-  res.status(200).json(result);
+  await new TicketUpdatePublisher(natsWrapper.client).publish({ 
+    id: existedTicket.id, 
+    version: existedTicket.version,
+    title: existedTicket.title, 
+    price: existedTicket.price, 
+    userId: existedTicket.userId 
+  })
+
+  res.status(200).json(existedTicket);
 });
 
 export default router;

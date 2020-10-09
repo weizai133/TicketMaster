@@ -1,14 +1,14 @@
 import { Message } from 'node-nats-streaming';
-import { Subjects, Listener, TicketUpdatedEvent } from '@sgtickets/common';
+import { Subjects, Listener, TicketUpdateEvent } from '@rayjson/common';
 import { Ticket } from '../../models/ticket';
 import { queueGroupName } from './queue-group-name';
 
-export class TicketUpdatedListener extends Listener<TicketUpdatedEvent> {
+export class TicketUpdatedListener extends Listener<TicketUpdateEvent> {
   subject: Subjects.TicketUpdated = Subjects.TicketUpdated;
   queueGroupName = queueGroupName;
 
-  async onMessage(data: TicketUpdatedEvent['data'], msg: Message) {
-    const ticket = await Ticket.findById(data.id);
+  async onMessage(data: TicketUpdateEvent['data'], msg: Message) {
+    const ticket = await Ticket.findByEvent(data);
 
     if (!ticket) {
       throw new Error('Ticket not found');

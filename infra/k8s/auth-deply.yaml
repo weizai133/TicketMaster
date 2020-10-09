@@ -18,7 +18,7 @@ spec:
           image: weizai133/auth
           env:
             - name: MONGO_URI
-              value: 'mongodb://ticketmaster-mongo-srv:27017/ticket'
+              value: 'mongodb://ticketmaster-mongo-srv:27017/auth'
             - name: JWT_KEY
               valueFrom:
                 secretKeyRef:
