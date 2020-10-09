@@ -2,8 +2,8 @@ import express, { Request, Response } from "express";
 import { body } from "express-validator";
 import { Ticket } from "../model";
 import { requireAuth, validateRequest, NotFoundError, CredentialError } from "@rayjson/common";
-import { TicketCreatedPublisher } from "../events/TicketCreatedPublisher";
-import { TicketUpdatePublisher } from "../events/TicketUpdatePublisher";
+import { TicketCreatedPublisher } from "../events/publisher/TicketCreatedPublisher";
+import { TicketUpdatePublisher } from "../events/publisher/TicketUpdatePublisher";
 import { natsWrapper } from "../nats-wrapper";
 
 const router = express.Router();
@@ -33,7 +33,7 @@ async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
   const existedTicket = await Ticket.findById(req.params.id);
 
-  if (!existedTicket) throw new NotFoundError();
+  if (!existedTicket) throw new Error('Ticket is not found');
 
   return res.status(200).send(existedTicket);
 });
@@ -54,8 +54,8 @@ async (req: Request, res: Response) => {
   const existedTicket = await Ticket.findById(req.params.id);
   
   if (!existedTicket) throw new NotFoundError();
-
-  if (existedTicket.userId !== req.currentUser?.id) throw new CredentialError();
+  else if (existedTicket.userId !== req.currentUser?.id) throw new CredentialError();
+  else if (!!existedTicket.orderId) throw new Error('Ticket is reserved!!!');
 
   existedTicket.set({
     title: req.body.title,

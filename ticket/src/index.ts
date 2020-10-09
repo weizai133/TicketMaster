@@ -5,6 +5,8 @@ import { json } from "body-parser";
 import { errorHandler, NotFoundError } from "@rayjson/common";
 import morgan from "morgan";
 import { natsWrapper } from "./nats-wrapper";
+import { OrderCreatedListener } from "./events/listener/OrderCreatedListener";
+import { OrderCancelledListener } from "./events/listener/OrderCancelledListener";
 import ticketRouter from "./routes";
 
 const app = express();
@@ -57,6 +59,9 @@ const start = async () => {
     });
     process.on('SIGINT', () => natsWrapper.client.close());
     process.on('SIGTERM', () => natsWrapper.client.close());
+    
+    new OrderCreatedListener(natsWrapper.client).listen();
+    new OrderCancelledListener(natsWrapper.client).listen();
     
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,

@@ -21,6 +21,7 @@ app.use(morgan(function (tokens, req, res) {
 app.use('/api/orders', orderRouter);
 
 app.all('*', async (req, res) => {
+  console.log('here')
   throw new NotFoundError();
 });
 

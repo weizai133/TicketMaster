@@ -12,7 +12,7 @@ const EXPIRATION_SECONDS = 15 * 60;
 const router = express.Router();
 
 router.get('/', requireAuth, async (req: Request, res: Response) => {
-  const orders = await Order.find({ userId : req.body.currentUser!.id }).populate('ticket');
+  const orders = await Order.find({ userId : req.currentUser!.id }).populate('ticket');
 
   return res.status(200).json(orders);
 });
@@ -41,7 +41,7 @@ router.post('/',
     const { body } = req
     const existedTicket = await Ticket.findById(body.ticketId)
 
-    if (!existedTicket) throw new NotFoundError();
+    if (!existedTicket) throw new Error('Ticket is not found from Order Service');
 
     const isReserved = await existedTicket.isReserved()
     if (isReserved) {
@@ -56,7 +56,7 @@ router.post('/',
 
     await new OrderCreatedPublisher(natsWrapper.client).publish({ 
       id: newOrder.id, 
-      version: 0,
+      version: newOrder.version,
       userId: req.currentUser!.id, 
       ticket: { id: existedTicket.id, title: existedTicket.title, price: existedTicket.price }, 
       expiresAt: newOrder.expiresAt.toISOString(), 
@@ -71,9 +71,8 @@ router.post('/',
 router.delete('/:orderId', requireAuth, async (req: Request, res: Response) => {
   if (!req.params.orderId) throw new BadRequestError('Order Id is required');
 
-  const order = await Order.findById(req.params.orderId);
-
-  if (!order) throw new NotFoundError();
+  const order = await Order.findById(req.params.orderId).populate('ticket');
+  if (!order) throw new Error('Order is not found');
   else if (order.userId !== req.currentUser!.id) throw new CredentialError();
 
   order.status = OrderStatus.Cancelled;
@@ -87,18 +86,17 @@ router.delete('/:orderId', requireAuth, async (req: Request, res: Response) => {
       price: order.ticket.price,
       title: order.ticket.title
     }
-  })
+  });
 
-  res.status(204).json(order);
+  res.status(200).json(order);
 });
 
 router.get('/getTicketById/:ticketId', async (req: Request, res: Response) => {
-  if (!req.params.ticketId) throw new BadRequestError('Ticket Id is required');
-  const result = await Ticket.findOne({ id: req.params.ticketId });
-  
-  if (!result) throw new NotFoundError();
+  const ticket = await Ticket.findOne({ _id: req.params.ticketId });
 
-  return res.status(200).send(result);
-})
+  if (!ticket) throw new Error('Ticket is not found from ORDER Service');
+
+  return res.status(200).json(ticket);
+});
 
 export default router;

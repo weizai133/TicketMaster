@@ -17,7 +17,7 @@ export class TicketCreatedListener extends Listener<TicketCreatedEvent> {
       version
     });
     await ticket.save();
-
+    console.log('here')
     msg.ack();
   }
 }
